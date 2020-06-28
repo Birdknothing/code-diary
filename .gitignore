@@ -60,6 +60,8 @@ typings/
 # next.js build output
 .next
 
+2020/*
+
 *.jpg
 *.png
 *.gif
@@ -83,6 +85,15 @@ typings/
 *.cache
 *.pak
 *.rels
+
+*.java
+browsermob
+epubjs
+hdrp-demo
+pdfjs
+video-js
+viewer-js
+*.mp4
 
 # what to ignore
 test-gitpush/2/22.js

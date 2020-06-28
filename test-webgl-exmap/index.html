@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- 图片 -->
+    <link rel="stylesheet" href="/viewer.css" />
+    <style>
+      img {
+        cursor: zoom-in;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- 图片 -->
+    <video src="http://localhost:3001/1.mp4"></video>
+    <script src="/viewer.js"></script>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        var galley = document.getElementById("galley");
+        var maxOffsetPercentage = 0.9;
+        var viewer = new Viewer(galley, {
+          url: "data-original",
+          backdrop: "static",
+        });
+      });
+    </script>
+    <script>
+      //   const xhr = new XMLHttpRequest();
+      //   xhr.open("get", "/test");
+      //   xhr.onreadystatechange = function () {
+      //     if (xhr.status === 200 && xhr.readyState === 4) {
+      //       console.log(xhr.responseText);
+      //     }
+      //   };
+      //   xhr.send(null);
+    </script>
+  </body>
+</html>

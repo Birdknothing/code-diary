@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      .wbox {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .sbox + .sbox {
+        margin-left: 50px;
+    }
+    .hor {
+        width: 600px;
+        height: 100px;
+        display: flex;
+      }
+      .box {
+        width: 100px;
+        height: 100px;
+        border: 1px solid #000;
+        overflow: scroll;
+      }
+      .box input{
+          height: 100px;
+          border: none;
+          line-height: 100px;
+          width: 100%;
+          text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wbox">
+      <div class="sbox">
+        m 矩阵：
+        <div><span>ver:</span><input type="text" id="leftM" value="3" /></div>
+        <div><span>col:</span><input type="text" id="leftN" value="2" /></div>
+      </div>
+
+      <div class="sbox">
+        n 矩阵：
+        <div><span>m:</span><input type="text" id="rightM" value="3" /></div>
+        <div><span>n:</span><input type="text" id="rightN" value="3" /></div>
+      </div>
+    </div>
+
+    <div><button onclick="genMatrix()">生成</button></div>
+
+    <div class="wbox">
+      <div id="left" class="sbox"></div>
+      <div id="right" class="sbox"></div>
+    </div>
+
+    <div><button onclick="multiResult()">乘</button></div>
+    <div>结果：</div>
+
+    <div>
+      <div id="result"></div>
+    </div>
+    <script>
+      function _$(sel) {
+        if (!sel) {
+            console.log("no value");
+          return this;
+        }
+        
+        switch (true) {
+          case sel.indexOf(".") !== -1:
+            this.ele = document.getElementsByClassName(sel.split(".")[1])[0];
+            return this;
+          case sel.indexOf("#") !== -1:
+            this.ele = document.getElementById(sel.split("#")[1]);
+            return this;
+
+          default:
+            return this;
+        }
+        this.ele = document.getElementsByTagName(sel)[0];
+        return this;
+      }
+      _$.prototype = {
+        ele: { value: "", innerHTML: "" },
+        val(s) {
+          if (s !== undefined) {
+            this.ele.value = s;
+            return this;
+          }
+          return this.ele.value;
+        },
+        html(s) {
+          if (s !== undefined) {
+            this.ele.innerHTML = s;
+            return this;
+          }
+          return this.ele.innerHTML;
+        },
+      };
+      function $(sel) {
+        return new _$(sel);
+      }
+      //
+      let lMat = null,
+        rMat = null,
+        resMat = null;
+
+      // 生成
+      function genMatrix() {
+        lMat = mkMat({
+          id: "left",
+          ver: +$("#leftM").val(),
+          col: +$("#leftN").val(),
+        });
+        rMat = mkMat({
+          id: "right",
+          ver: +$("#rightM").val(),
+          col: +$("#rightN").val(),
+        });
+      }
+
+
+      // 生成格子
+      let genGrid = (id, val, i) =>
+        `<div class="box"><input class="box${i}" onchange="getMat('${id}').changeVal(event.target.value,${i})" on type="text" value="${val}" /></div>`;
+
+      let genHor = (str) => `<div class="hor">${str}</div>`;
+
+      const { mkMat, getMat } = (() => {
+        const matConfig = {};
+        const getMat = (id) => matConfig[id];
+        const mkMat = ({ id, ver, col,arr }) => {
+          const instance = {
+            arr: [],
+            id,
+            ver,
+            col,
+            leng:0,
+            htmlstr: "",
+            init(arr) {
+              this.leng = ver * col;
+              if(arr){
+                  this.arr = arr;
+              }else{
+                  this.arr = Array.from({ length: this.leng }).map(() => 0);
+                }
+              // html
+              let str = "";
+              for (let i = 0; i < ver; i++) {
+                let grids = "";
+                for (let j = 0; j < col; j++) {
+                  grids += genGrid(this.id, this.arr[i*col+j], i*col+j);
+                }
+                // 行加
+                str += genHor(grids);
+              }
+
+              $(`#${this.id}`).html(str);
+
+            },
+            changeVal(val, index) {
+              this.arr[+index] = val;
+            },
+          };
+          instance.init(arr);
+          //   if(!matConfig[id]){
+          //       matConfig[id] = instance;
+          //   }else{
+          //       console.warn("same id array exists！");
+          //       // 单例
+          //       return matConfig[id];
+          //   }
+          matConfig[id] = instance;
+          return matConfig[id];
+        };
+        return {
+          mkMat,
+          getMat,
+        };
+      })();
+
+      // 计算
+      const multi = (x1,x2) => {
+          if(+x1 !== +x1 || +x2 !== +x2){
+              return x1+" * "+x2;
+          }else{
+              return x1*x2;
+          }
+      }
+      const add = (x1,x2) => {
+          if(x1 === 0){
+            return x2;
+          }
+          if(x2 === 0){
+              return x1;
+          }
+          return x1+" + "+x2;
+      }
+      // 计算乘积数组
+      const multiMat = (m1, m2) => {
+          if(m1.col !== m2.ver && m1.ver !== m2.col){
+            console.warn("cannot multiply!");
+            return;
+          }
+          const ver = m1.ver;
+          const col = m2.col;
+          const arr = [];
+          for(let i = 0;i<ver;i++){
+              for(let j = 0;j<col;j++){
+                  // index: i*col + j
+
+                  let val = 0;
+                  for(let a =0;a < m1.col;a++){
+                    val += m1.arr[i*m1.col + a] * m2.arr[]
+                  }
+                  let val = m1.arr[i]
+                arr.push()
+              }
+          }
+          resMat = mkMat({
+          id: "result",
+          ver,
+          col,
+          arr
+        });
+      };
+
+
+    </script>
+  </body>
+</html>

@@ -4,12 +4,14 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Document</title>
+        <style>
+            .a{
+                /* transition- */
+                transition-timing-function:transform  cubic-bezier(0.075, 0.82, 0.165, 1);
+            }
+        </style>
     </head>
     <body>
-        <script type="module">
-            const og = "./2-tmp.js";
-            import { x } from og;
-            console.log(x);
-        </script>
+        <div class="a"></div>
     </body>
 </html>

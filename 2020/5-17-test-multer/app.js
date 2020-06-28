@@ -16,7 +16,7 @@ app.listen(3000);
 app.use("/test", require("./tmp/route"));
 app.use(
     "/my-min-library",
-    express.static("/Users/shaofeibo/Desktop/code-diary/my-min-library")
+    express.static(String.raw`E:\code-diary-2019\my-min-library`)
 );
 
 app.use(express.static("./", { index: "index.html" }));

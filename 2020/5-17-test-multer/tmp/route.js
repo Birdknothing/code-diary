@@ -5,7 +5,7 @@ const multer = require("multer");
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
         // 第二个参数为false，拒绝此文件
-        cb(null, path.resolve("static/abc"));
+        cb(null, path.resolve("static"));
     },
     filename: function(req, file, cb) {
         // cb(null, file.fieldname + "-" + Date.now());

@@ -1,0 +1,9 @@
+{
+  "name": "superagent",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "formdata-polyfill": "^3.0.20"
+  }
+}

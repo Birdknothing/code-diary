@@ -1,0 +1,9 @@
+{
+  "name": "pdfminjs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "pdfjs-dist": "^2.7.570"
+  }
+}

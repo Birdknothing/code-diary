@@ -1,0 +1,175 @@
+var mautoJson = {};
+var mautoIndex=0;
+function setAutoText(){
+let backgroundparentDomObjs = document.getElementsByClassName('NdAuto-parent');
+var key = 0;
+var flag = false;
+mautoIndex=0;
+if("{}" == JSON.stringify(mautoJson)) {
+  flag = true;
+}
+ while(backgroundparentDomObjs[key]){
+  let backgroundDomObj = backgroundparentDomObjs[key].getElementsByTagName('div')[0];
+  if(backgroundDomObj){
+    let backEm = getEmVal(backgroundDomObj,flag);
+    if(!backEm){
+      key++;
+      continue;
+    }
+    var textTagArr=['img','span','p','b','strong','s','em','h1','h2','h3'];
+    var tagIndex = 0;
+    while(textTagArr[tagIndex]){ 
+      let itemObjs = backgroundDomObj.getElementsByTagName(textTagArr[tagIndex]);
+      if(!itemObjs.length){
+        tagIndex++;
+        continue;
+      }
+      var keyd = 0;
+      while(itemObjs[keyd]){
+        var tmp = getEmVal(itemObjs[keyd],flag);
+        if(tmp){
+          setBgText(backEm, tmp, backgroundDomObj, itemObjs[keyd]);
+        }
+        keyd++;
+      }
+      tagIndex++;
+    }
+    key++;
+  }
+ }
+}
+function getEmVal(em, storeflag){
+ if(storeflag){
+    let mstyle = em.getAttribute("style");
+    if(mstyle){
+      let arr= mstyle.split(";");
+      let tempJson = {};
+      mautoJson[mautoIndex]= {};
+      for(var key in arr){
+        if(arr[key]){
+          let tmpKey = arr[key].split(":")[0].trim();
+          let tmpVal =  arr[key].split(":")[1].trim();
+          tempJson[tmpKey] = tmpVal;
+          mautoJson[mautoIndex][tmpKey] = tmpVal;
+        }
+      }
+      mautoIndex++;
+      return tempJson;
+    }
+ }else{
+    let mstyle = em.getAttribute("style");
+    if(mstyle){
+   		 return mautoJson[mautoIndex++];
+    }
+ }
+}
+function getVal(em){
+  return em.split('%')[0]/100;
+}
+function setBgText(backgroundObj, textObj, backgroundDomObj, textDomObj) {
+    let bgWHRate = backgroundObj['--imgwidth'] / backgroundObj['--imgheight'];
+    let currentWHRate = backgroundDomObj.offsetWidth / backgroundDomObj.offsetHeight;
+    if(backgroundObj.hasOwnProperty('background-position')){
+      if(backgroundObj['background-position'].trim()=="center"){
+    backgroundObj.backgroundPositionX="center";
+          backgroundObj.backgroundPositionY="center";
+       }else{
+     backgroundObj.backgroundPositionX=backgroundObj['background-position'].split(' ')[0].trim();
+           backgroundObj.backgroundPositionY=backgroundObj['background-position'].split(' ')[1].trim();
+       }
+    }else{ 
+      backgroundObj.backgroundPositionX="center";
+      backgroundObj.backgroundPositionY="center";
+    }
+      if(currentWHRate > bgWHRate){ 
+        if (textObj.hasOwnProperty('width')) {
+          textDomObj.style.width = bgWHRate * backgroundDomObj.offsetHeight * getVal(textObj.width) + "px";
+        }
+        if (textObj.hasOwnProperty('height')) {
+          textDomObj.style.height = backgroundDomObj.offsetHeight * getVal(textObj.height) + "px";
+        }
+        if (textObj.hasOwnProperty('font-size')) {
+          let fontsize = backgroundDomObj.offsetHeight * getVal(textObj['font-size']);
+          textDomObj.style.fontSize = fontsize + "px";
+          textDomObj.style.webkitTransform = "scale(1)";
+          if (fontsize > 10) {
+          }else{
+            textDomObj.style.webkitTransform = "scale(" + fontsize / 10 + ")";
+          }
+        }
+        if (textObj.hasOwnProperty('left')) {
+          let leftRate = backgroundObj.backgroundPositionX;
+          if(backgroundObj.backgroundPositionX === "left"){
+            leftRate = 0;
+          }else if(backgroundObj.backgroundPositionX === "right"){
+            leftRate = 1;
+          }else if(backgroundObj.backgroundPositionX === "center"){
+            leftRate = 0.5;
+          }else{
+            leftRate = Number(getVal(leftRate));
+          }
+          textDomObj.style.left = backgroundDomObj.offsetWidth * leftRate - bgWHRate * backgroundDomObj.offsetHeight * (leftRate - getVal(textObj.left)) + "px";
+        }
+        if (textObj.hasOwnProperty('top')) {
+          let topRate = backgroundObj.backgroundPositionY;
+          if(backgroundObj.backgroundPositionY === "top"){
+            topRate = 0;
+          }else if(backgroundObj.backgroundPositionY === "bottom"){
+            topRate = 1;
+          }else if(backgroundObj.backgroundPositionY === "center"){
+            topRate = 0.5;
+          }else{
+            topRate =Number(getVal(topRate));
+          }
+          textDomObj.style.top = backgroundDomObj.offsetHeight * topRate - backgroundDomObj.offsetHeight * (topRate - getVal(textObj.top)) + "px";
+        }
+      }else{
+        if (textObj.hasOwnProperty('width')) {
+          textDomObj.style.width = backgroundDomObj.offsetWidth * getVal(textObj.width) + "px";
+        }
+        if (textObj.hasOwnProperty('height')) {
+          textDomObj.style.height = 1/bgWHRate * backgroundDomObj.offsetWidth * getVal(textObj.height) + "px";
+        }
+        if (textObj.hasOwnProperty('font-size')) {
+          let fontsize = 1/bgWHRate * backgroundDomObj.offsetWidth * getVal(textObj['font-size']);
+          textDomObj.style.fontSize = fontsize + "px";
+          textDomObj.style.webkitTransform = "scale(1)";
+          if (fontsize > 10) {
+          }else{
+            textDomObj.style.webkitTransform = "scale(" + fontsize / 10 + ")";
+          }
+        }
+        if (textObj.hasOwnProperty('left')) {
+          let leftRate = backgroundObj.backgroundPositionX;
+          if(backgroundObj.backgroundPositionX === "left"){
+            leftRate = 0;
+          }else if(backgroundObj.backgroundPositionX === "right"){
+            leftRate = 1;
+          }else if(backgroundObj.backgroundPositionX === "center"){
+            leftRate = 0.5;
+          }else{
+            leftRate = Number(getVal(leftRate));
+          }
+          textDomObj.style.left = backgroundDomObj.offsetWidth * leftRate -  backgroundDomObj.offsetWidth * (leftRate - getVal(textObj.left)) + "px";
+        }
+        if (textObj.hasOwnProperty('top')) {
+          let topRate = backgroundObj.backgroundPositionY;
+          if(backgroundObj.backgroundPositionY === "top"){
+            topRate = 0;
+          }else if(backgroundObj.backgroundPositionY === "bottom"){
+            topRate = 1;
+          }else if(backgroundObj.backgroundPositionY === "center"){
+            topRate = 0.5;
+          }else{
+            topRate = Number(getVal(topRate));
+          }
+          textDomObj.style.top = backgroundDomObj.offsetHeight * topRate -  1/bgWHRate *backgroundDomObj.offsetWidth * (topRate - getVal(textObj.top)) + "px";
+        }
+      }
+    }
+  window.onresize = function () {
+  setAutoText();
+};
+window.onload = function () {
+  setAutoText();
+};

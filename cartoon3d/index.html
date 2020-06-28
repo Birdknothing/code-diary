@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+    <body>
+        <script src="http://192.168.244.105/EBookWeb3DDemo/static/sdk/0.9/sdk.js"></script>
+        <script>
+            Web3dInstance.loadResource('D38D5E30-CE7E-8818-555C-DB57388E29FF', (resource) => {
+                Web3dInstance.setPosition({ left: 0, top: 0, width: 600, height: 300 });
+                // const cs = document.getElementsByTagName("canvas")[0];
+                // cs.setAttribute("width",200);
+                // cs.setAttribute("height",200);
+                Web3dInstance.play('showHat');
+	console.log(resource);
+});
+        </script>
+     
+    </body>
+</html>

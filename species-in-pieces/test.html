@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .a {
+        width: 200px;
+        height: 200px;
+        background-color: red;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .a .b {
+        width: 100px;
+        height: 100px;
+        background-color: orange;
+      }
+      @keyframes test {
+        0% {
+        }
+      }
+      .c {
+        animation: test 1s linear infinite alternate backwards timing-function
+          delay iteration-count direction fill-mode;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="a">
+      <div class="b"></div>
+    </div>
+    <div class="test0"></div>
+    <script>
+      const adom = document.getElementsByClassName("a")[0];
+
+      adom.onmousedown = function (e) {
+        console.log("mouse down 00");
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        return false;
+      };
+      adom.addEventListener("mousedown", function (e) {
+        console.log("mouse down 1");
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        return false;
+      });
+
+      adom.onmouseup = function (e) {
+        console.log("mouse up 00");
+        // e.stopImmediatePropagation();
+        e.preventDefault();
+      };
+
+      adom.addEventListener("mouseup", function () {
+        console.log("mouse up 1");
+      });
+      adom.addEventListener("mouseup", function () {
+        console.log("mouse up 2");
+      });
+      // 插入css规则
+      const { insertCssRule, alterCssByClassName,inserKeyframeRule,alterCssByKeyFrameName } = (() => {
+        // 存 classes 的style引用和 存 keyframes 的style标签引用
+        const keyframesConfig = {};
+        const classesConfig = {};
+        // csname 和 keyframe name 需要相同
+
+        const getStyleWithClasses = (sheetname) => {
+          if (!classesConfig[sheetname]) {
+            classesConfig[sheetname] = document.createElement("style");
+          }
+          // 已存在 style 包含 keyframes,则在其后插入
+          if (keyframesConfig[sheetname]) {
+            keyframesConfig[sheetname].after(classesConfig[sheetname]);
+          } else {
+            document.head.appendChild(classesConfig[sheetname]);
+          }
+          return classesConfig[sheetname].sheet;
+        };
+
+        // keyframe 在 class 之前声明
+        const getStyleWithKeyFrames = (sheetname) => {
+          if (!keyframesConfig[sheetname]) {
+            keyframesConfig[sheetname] = document.createElement("style");
+          }
+          // 已存在 style 包含 相关的 classes，在其前插入
+          if (classesConfig[sheetname]) {
+            classesConfig[sheetname].parentNode.insertBefore(keyframesConfig[sheetname],classesConfig[sheetname]);
+          } else {
+            document.head.appendChild(keyframesConfig[sheetname]);
+          }
+          return keyframesConfig[sheetname].sheet;
+        };
+
+        return {
+          insertCssRule: (sheetname, rule) => {
+            getStyleWithClasses(sheetname).insertRule(rule);
+          },
+          inserKeyframeRule: (sheetname,rule) => {
+            getStyleWithKeyFrames(sheetname).insertRule(rule);
+          },
+          alterCssByKeyFrameName: (sheetname, framename, newcssstyle) => {
+            for (let i in getStyleWithKeyFrames(sheetname).cssRules) {
+              if (
+                getStyleWithKeyFrames(sheetname).cssRules[i].name === framename
+              ) {
+                getStyleWithKeyFrames(sheetname).deleteRule(i);
+                break;
+              }
+            }
+            getStyleWithKeyFrames(sheetname).insertRule(newcssstyle);
+          },
+          alterCssByClassName: (sheetname, cssname, newcssstyle) => {
+            for (let i in getStyleWithClasses(sheetname).cssRules) {
+              if (
+                getStyleWithClasses(sheetname).cssRules[i].selectorText ===
+                "." + cssname
+              ) {
+                getStyleWithClasses(sheetname).deleteRule(i);
+                break;
+              }
+            }
+            getStyleWithClasses(sheetname).insertRule(newcssstyle);
+          },
+        };
+      })();
+      let sheetname = "style1";
+      let cssname = "test0";
+
+      inserKeyframeRule(
+        sheetname,
+        `@keyframes ${cssname}{50%{background-color:blue;100%{background-color:red}}}`
+      );
+      insertCssRule(
+        sheetname,
+        `.${cssname}{width:100px;height:100px;border:1px solid black;animation: ${cssname} 1s infinite backwards}`
+      );
+
+      setTimeout(() => {
+        alterCssByKeyFrameName(sheetname,cssname,`@keyframes ${cssname}{50%{background-color:green;100%{background-color:red}}}`)
+        // alterCssByClassName(
+        //   sheetname,
+        //   cssname,
+        //   `.${cssname}{background-color:orange;}`
+        // );
+      }, 2000);
+    </script>
+  </body>
+</html>

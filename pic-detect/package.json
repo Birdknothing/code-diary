@@ -1,0 +1,11 @@
+{
+  "name": "pic-detect",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "node-tesseract": "^0.2.7",
+    "tesseract.js": "^2.1.4"
+  }
+}

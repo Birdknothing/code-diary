@@ -1,2 +1,6 @@
-const a = "abc";
-console.log(a.split('$$')[0]);
+const a = {
+
+}
+a.__proto__  = {x:1}
+console.log(a.x);
+

@@ -1,0 +1,9 @@
+{
+  "name": "epubjs-tmp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "epubjs": "^0.3.88"
+  }
+}

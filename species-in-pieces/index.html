@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>species</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      *::-webkit-scrollbar {
+        display: none;
+      }
+      /* .po {
+                width: 200px;
+                height: 200px;
+                background-color: #fff88b;
+                animation: all 0.5s cubic-bezier(0.35, 0, 0.25, 1);
+                clip-path: polygon(49% 0, 95% 65%, 11% 94%);
+            } */
+      /* .po:hover {
+                background-color: red;
+                clip-path: polygon(90% 50%, 50% 95%, 11% 40%);
+            } */
+      .polygon-wrap {
+        /* width: 500px; */
+        position: relative;
+        width: 100vw;
+        height: 800px;
+        border: 1px solid red;
+        z-index: 2;
+      }
+      .triDiv {
+        position: absolute;
+      }
+      @keyframes shine {
+        0% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 0.6;
+        }
+        99% {
+          opacity: 0.8;
+        }
+      }
+      .shine {
+        /* animation: shine 0.5s timing-function delay iteration-count direction fill-mode; */
+        /* animation: shine 1s infinite backwards; */
+      }
+      #paintCanvas {
+        z-index: 1;
+        position: absolute;
+        width: 100vw;
+        height: 800px;
+      }
+      /* 图块编辑 */
+      .triEditor {
+        position: fixed;
+        padding: 5px 10px;
+        top: 9999px;
+        left: 0px;
+        width: 400px;
+        height: 600px;
+        z-index: 10;
+        border: 1px solid #abc8a3;
+        background-color: #fff;
+      }
+      .close {
+        position: absolute;
+        right: 4px;
+        top: 4px;
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+        font-weight: bolder;
+        transform: rotate(45deg);
+        cursor: pointer;
+      }
+      .editorItem {
+        height: 40px;
+        line-height: 40px;
+      }
+      /* 编辑三角的模态 */
+      .stateEdit {
+        /* border: 2px solid #000; */
+        box-shadow: 3px 5px 5px rgba(0, 0, 0, 0.5);
+      }
+      .animatePanel {
+        width: 100%;
+        height: 400px;
+        background-color: #ccc;
+        overflow: hidden;
+      }
+      .animatePanel .animateBody {
+        width: 100%;
+        overflow: hidden;
+        background-color: #0f0;
+        padding: 5px 5px;
+      }
+
+      .timeslicemenu,
+      .timeslice {
+        width: 600px;
+        display: flex;
+        /* justify-content: center; */
+        align-items: center;
+        overflow: scroll;
+      }
+      .timeslicemenu .item,
+      .timeslice .item {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100px;
+        margin-left: 10px;
+      }
+      .timeslice .item button {
+        width: 100%;
+      }
+      .timeslice .item button:nth-child(1) {
+        width: 50%;
+      }
+      #animation {
+        height: 80px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="po"></div>
+    <!-- <div id="wrap">
+        <svg class="stage" viewBox="0 0 1000 700" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <g id="extra">
+                <polygon points="793.50,476.88,949.50,500.88,805.50,518.88" fill="hsla(0, 0%, 100%, 0)"></polygon>
+                <polygon points="793.50,476.88,949.50,500.88,805.50,518.88" fill="hsla(0, 0%, 100%, 0)"></polygon>
+                <polygon points="793.50,476.88,949.50,500.88,805.50,518.88" fill="hsla(0, 0%, 100%, 0)"></polygon>
+            </g>
+            <g id="anis">
+            </g>
+        </svg>
+        <button id="go_btn">GO!</button>
+        <h1 class="name"></h1>
+        <h2 class="desc"></h2>
+    </div> -->
+    <canvas id="paintCanvas" height="800"></canvas>
+    <div class="triEditor">
+      <div class="close">+</div>
+
+      <div class="editorItem">
+        <span>背景色</span>
+        <input
+          type="text"
+          placeholder="透明度"
+          onblur="toolMg.changeTriColorAlpha(event)"
+        />
+        <input type="color" onblur="toolMg.changeTriColor(event)" />
+        <!-- class="changeBgColor" -->
+      </div>
+      <div class="editorItem">
+        <button class="delBtn">删除</button>
+        <button class="editTriAngle" data-state="0">开启形状编辑</button>
+      </div>
+
+      <div class="animatePanel">
+        <div class="timeslicemenu">
+          <div class="item">0-100%</div>
+        </div>
+        <div class="animateBody"></div>
+        <div class="animateConfig">
+          <div>
+            <span>总时长：&nbsp;</span
+            ><input
+              type="text"
+              id="duration"
+              onblur="toolMg.changeDuration(event)"
+            />&nbsp;秒
+          </div>
+          <div>
+            <span>animation：&nbsp;</span
+            ><textarea
+              type="text"
+              id="animation"
+              onblur="toolMg.changeanimation(event)"
+            ></textarea>
+          </div>
+        </div>
+        <div>
+          <button class="addFrame">新增动画帧</button>
+        </div>
+        <div>
+          <button class="previewFrame">预览动画</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="polygon-wrap"></div>
+    <script>
+      // canvas三个点集齐
+      // 一个图案的点管理器,绑定数据和dom元素
+      let pointArrMgGetter = () => null;
+
+      // 获取divmangeer
+      let divManagerGetter = () => null;
+
+      // 获取pic
+      let paintingGetter = () => null;
+
+      // canvas管理
+      const canvasMg = {
+        pen: null,
+        oriX: -1,
+        oriY: -1,
+        canvas: null,
+        init() {
+          const canvas = document.getElementById("paintCanvas");
+          this.canvas = canvas;
+          const swidth = document.documentElement.clientWidth;
+          canvas.setAttribute("width", swidth);
+
+          this.pen = canvas.getContext("2d");
+        },
+        clear() {
+          this.pen.clearRect(0, 0, 1024, 800);
+          this.oriX = -1;
+          this.oriY = -1;
+        },
+        moveto(x1, y1) {
+          //   console.log("Move to", x1, y1);
+          this.pen.beginPath();
+          this.pen.moveTo(x1, y1);
+          this.oriX = x1;
+          this.oriY = y1;
+        },
+        drawline(x1, y1) {
+          if (this.oriX === -1) {
+            this.moveto(x1, y1);
+            return;
+          }
+          // this.pen.beginPath();
+          this.pen.lineTo(x1, y1);
+          this.pen.stroke();
+        },
+        drawlineto(x1, y1, x2, y2) {
+          this.pen.beginPath();
+          this.pen.moveTo(x1, y1);
+          this.pen.lineTo(x2, y2);
+          this.pen.stroke();
+        },
+        lineArr4: [],
+        // 达到3个点后触发的回调
+        reach3PointCallback: null,
+        drawnewline(x1, y1) {
+          this.clear();
+
+          // 连线
+          if (this.lineArr4.length === 2) {
+            this.drawlineto(x1, y1, this.lineArr4[0], this.lineArr4[1]);
+          }
+          if (this.lineArr4.length === 4) {
+            this.drawlineto(...this.lineArr4);
+            this.drawlineto(x1, y1, this.lineArr4[2], this.lineArr4[3]);
+          }
+        },
+      };
+      canvasMg.init();
+    </script>
+    <script>
+      function _$(s = "") {
+        switch (true) {
+          case s.indexOf(".") !== -1:
+            this.ele = document.getElementsByClassName(s.split(".")[1])[0];
+            break;
+          case s.indexOf("#") !== -1:
+            this.ele = document.getElementById(s.split("#"));
+
+            break;
+
+          default:
+            this.ele = document.getElementsByTagName(s.toUpperCase())[0];
+            break;
+        }
+        return this;
+      }
+      function $(s = "") {
+        return new _$(s);
+      }
+      _$.prototype = {
+        ele: { value: "", innerHTML: "" },
+        on(ename, f) {
+          this.ele["on" + ename] = f;
+        },
+        infos() {
+          const sonrect = this.ele.getBoundingClientRect();
+          const fatherrect = this.ele.parentNode.getBoundingClientRect();
+          const obj = {
+            width: sonrect.width,
+            height: sonrect.height,
+            top: sonrect.top - fatherrect.top,
+            left: sonrect.left - fatherrect.left,
+          };
+          return obj;
+        },
+        width() {
+          const width = this.ele.getBoundingClientRect().width;
+          return width;
+        },
+        height() {
+          const height = this.ele.getBoundingClientRect().height;
+          return height;
+        },
+        left(e) {
+          if (e !== undefined) {
+            this.ele.style.left = e + "px";
+          } else {
+            return this.infos().left;
+          }
+        },
+        top(e) {
+          if (e !== undefined) {
+            this.ele.style.top = e + "px";
+          } else {
+            return this.infos().top;
+          }
+        },
+      };
+      const basicArrMaker = () => ({
+        _arr: null,
+        add(ele) {
+          if (!this._arr) {
+            this._arr = [];
+          }
+          this._arr.push(ele);
+        },
+        pop() {
+          if (this._arr && this._arr.length > 0) {
+            this._arr.pop();
+          }
+        },
+        clear() {
+          this._arr = null;
+        },
+        close() {
+          const tmp = this._arr;
+          this._arr = null;
+          return tmp;
+        },
+      });
+      // 根据三个点计算出矩形
+      const getRectDiv = (arr) => {
+        return [
+          Math.min(arr[0], arr[2], arr[4]),
+          Math.min(arr[1], arr[3], arr[5]),
+          Math.max(arr[0], arr[2], arr[4]),
+          Math.max(arr[1], arr[3], arr[5]),
+        ];
+      };
+      // 生成随机颜色
+      const mkRandomColor = () => [
+        `${Math.round(Math.random() * 255)},${Math.round(
+          Math.random() * 255
+        )},${Math.round(Math.random() * 255)}`,
+        `${Math.random().toString().slice(0, 3)}`,
+      ];
+
+      function strToRGB(str) {
+        // 处理六位的颜色值，转为RGB
+        var colorChange = [];
+        for (var i = 1; i < 7; i += 2) {
+          colorChange.push(parseInt("0x" + str.slice(i, i + 2)));
+        }
+        return colorChange;
+      }
+
+      // 插入css规则
+      const {
+        insertCssRule,
+        alterCssByClassName,
+        inserKeyframeRule,
+        alterCssByKeyFrameName,
+      } = (() => {
+        // 存 classes 的style引用和 存 keyframes 的style标签引用
+        const keyframesConfig = {};
+        const classesConfig = {};
+        // csname 和 keyframe name 需要相同
+
+        const getStyleWithClasses = (sheetname) => {
+          if (!classesConfig[sheetname]) {
+            classesConfig[sheetname] = document.createElement("style");
+          }
+          // 已存在 style 包含 keyframes,则在其后插入
+          if (keyframesConfig[sheetname]) {
+            keyframesConfig[sheetname].after(classesConfig[sheetname]);
+          } else {
+            document.head.appendChild(classesConfig[sheetname]);
+          }
+          return classesConfig[sheetname].sheet;
+        };
+
+        // keyframe 在 class 之前声明
+        const getStyleWithKeyFrames = (sheetname) => {
+          if (!keyframesConfig[sheetname]) {
+            keyframesConfig[sheetname] = document.createElement("style");
+          }
+          // 已存在 style 包含 相关的 classes，在其前插入
+          if (classesConfig[sheetname]) {
+            classesConfig[sheetname].parentNode.insertBefore(
+              keyframesConfig[sheetname],
+              classesConfig[sheetname]
+            );
+          } else {
+            document.head.appendChild(keyframesConfig[sheetname]);
+          }
+          return keyframesConfig[sheetname].sheet;
+        };
+
+        return {
+          insertCssRule: (sheetname, rule) => {
+            getStyleWithClasses(sheetname).insertRule(rule);
+          },
+          inserKeyframeRule: (sheetname, rule) => {
+            getStyleWithKeyFrames(sheetname).insertRule(rule);
+          },
+          alterCssByKeyFrameName: (sheetname, framename, newcssstyle) => {
+            for (let i in getStyleWithKeyFrames(sheetname).cssRules) {
+              if (
+                getStyleWithKeyFrames(sheetname).cssRules[i].name === framename
+              ) {
+                getStyleWithKeyFrames(sheetname).deleteRule(i);
+                break;
+              }
+            }
+            getStyleWithKeyFrames(sheetname).insertRule(newcssstyle);
+          },
+          alterCssByClassName: (sheetname, cssname, newcssstyle) => {
+            for (let i in getStyleWithClasses(sheetname).cssRules) {
+              if (
+                getStyleWithClasses(sheetname).cssRules[i].selectorText ===
+                "." + cssname
+              ) {
+                getStyleWithClasses(sheetname).deleteRule(i);
+                break;
+              }
+            }
+            getStyleWithClasses(sheetname).insertRule(newcssstyle);
+          },
+        };
+      })();
+
+      // 生成css类样式
+      const mkCssClassStyle = (cssname, config, withAnimation = false) => {
+        let css = `.${cssname}{`;
+        let color = "";
+        let alpha = "";
+        let duration = "1";
+        let animation = "";
+        for (let key in config) {
+          switch (key) {
+            case "left":
+              css += `left:${config[key]}px;`;
+              break;
+            case "top":
+              css += `top:${config[key]}px;`;
+              break;
+            case "width":
+              css += `width:${config[key]}px;`;
+              break;
+            case "height":
+              css += `height:${config[key]}px;`;
+              break;
+            case "polygon":
+              const arr = config[key];
+              css += `clip-path:polygon(${arr[0]}% ${arr[1]}%,${arr[2]}% ${arr[3]}%,${arr[4]}% ${arr[5]}%);`;
+              break;
+            case "color":
+              color = config[key];
+              break;
+            case "alpha":
+              alpha = config[key].toString();
+              break;
+              // 动画相关
+            case "duration":
+              duration = config[key].toString();
+              break;
+            case "animation":
+              animation = config[key];
+              break;
+
+            default:
+              break;
+          }
+        }
+        css += `background-color:rgba(${color},${alpha});`;
+
+        if(withAnimation){
+          css += `animation:${cssname} ${duration}s ${animation};`;
+        }
+
+        // css +=
+        css += "}";
+        console.log("get css",css);
+        
+        return css;
+      };
+
+      // 仅计算div位置和宽高生成的style
+      const calcDivPosStyle = (arr6) => {
+        const arr4 = getRectDiv(arr6);
+        const width = arr4[2] - arr4[0];
+        const height = arr4[3] - arr4[1];
+        const x1 = (((arr6[0] - arr4[0]) * 100) / width).toFixed(3);
+        const y1 = (((arr6[1] - arr4[1]) * 100) / height).toFixed(3);
+        const x2 = (((arr6[2] - arr4[0]) * 100) / width).toFixed(3);
+        const y2 = (((arr6[3] - arr4[1]) * 100) / height).toFixed(3);
+        const x3 = (((arr6[4] - arr4[0]) * 100) / width).toFixed(3);
+        const y3 = (((arr6[5] - arr4[1]) * 100) / height).toFixed(3);
+        return `left:${arr4[0]}px;top:${arr4[1]}px;width:${width}px;height:${height}px;clip-path: polygon(${x1}% ${y1}%, ${x2}% ${y2}%, ${x3}% ${y3}%);`;
+      };
+
+      // 生成div,arr6是位置数组
+      const mkDivConfig = (arr6) => {
+        const arr4 = getRectDiv(arr6);
+        const width = arr4[2] - arr4[0];
+        const height = arr4[3] - arr4[1];
+        const x1 = (((arr6[0] - arr4[0]) * 100) / width).toFixed(3);
+        const y1 = (((arr6[1] - arr4[1]) * 100) / height).toFixed(3);
+        const x2 = (((arr6[2] - arr4[0]) * 100) / width).toFixed(3);
+        const y2 = (((arr6[3] - arr4[1]) * 100) / height).toFixed(3);
+        const x3 = (((arr6[4] - arr4[0]) * 100) / width).toFixed(3);
+        const y3 = (((arr6[5] - arr4[1]) * 100) / height).toFixed(3);
+
+        const cssname =
+          paintingGetter().name + Math.random().toString().slice(-6);
+        const [color, alpha] = mkRandomColor();
+        const classStyle = mkCssClassStyle(cssname, {
+          left: arr4[0],
+          top: arr4[1],
+          width,
+          height,
+          polygon: [x1, y1, x2, y2, x3, y3],
+          color,
+          alpha,
+        });
+        // `.${cssname}{left:${arr4[0]}px;top:${arr4[1]}px;width:${width}px;height:${height}px;clip-path: polygon(${x1}% ${y1}%, ${x2}% ${y2}%, ${x3}% ${y3}%);background-color:rgba(${color},${alpha});}`;
+        insertCssRule(paintingGetter().name, classStyle);
+        // $tag
+        return {
+          domStr: `<div class="triDiv ${cssname}"></div>`,
+          color,
+          alpha,
+          cssname,
+          left: arr4[0],
+          top: arr4[1],
+          width,
+          height,
+          polygon: [x1, y1, x2, y2, x3, y3],
+          pos: arr6,
+          frame: 0,
+          // 默认1秒动画时长
+          duration: 1,
+          animation: `cubic-bezier(0.35, 0, 0.25, 1) infinite alternate backwards;`,
+        };
+      };
+
+      // 获取画布 div
+      const drawboardGetter = () =>
+        document.getElementsByClassName("polygon-wrap")[0];
+
+      // 画布新增div
+      const appendDiv = (str) => {
+        const div = document.createElement("div");
+        div.innerHTML = str;
+        const dom = div.children[0];
+        drawboardGetter().appendChild(dom);
+        return dom;
+      };
+      // 数组里面有点则画线
+      document.body.onmousemove = function (e) {
+        canvasMg.drawnewline(e.pageX, e.pageY);
+      };
+
+      // 用来调整保存的数据格式
+      const mkDivItem = (dom, config) => {
+        config.dom = dom;
+        config.animations = [];
+        // prettier-ignore
+        const {left,top,color,alpha,width,height,pos,polygon,duration,animation} = config;
+        // 将原始帧作为第一帧存储
+        // prettier-ignore
+        config.animations.push(JSON.stringify({left,top,color,alpha,width,height,pos,polygon,frame:0,duration}));
+        return config;
+      };
+      // dom管理器
+      const divManagerFac = () => ({
+        arr: [],
+        leng() {
+          return this.arr.length;
+        },
+        // 获取当前配置的字符串配置
+        getDomConfigString(item, frame) {
+          // prettier-ignore
+          const {left,top,color,alpha,width,height,pos,polygon,duration,animation} = item;
+          const obj = {
+            left,
+            top,
+            color,
+            alpha,
+            width,
+            height,
+            pos,
+            polygon,
+            duration,
+            animation,
+          };
+          // if (cssname !== undefined) {
+          //   obj.cssname = cssname;
+          // }
+          if (frame !== undefined) {
+            obj.frame = frame;
+          }
+          // prettier-ignore
+          return JSON.stringify(obj);
+        },
+        // 获取当前配置形成的 keyframes
+        getDomConfigKeyFrames(dom,isItem = false) {
+          // todo 优化 dom 查找
+          const item = !isItem ? this.getDomItem(dom) : dom;
+          if (!item) {
+            console.error("can't find dom");
+            return "";
+          }
+          let str = "";
+          for (let itemstr of item.animations) {
+            const {
+              frame,
+              width,
+              height,
+              left,
+              top,
+              color,
+              alpha,
+              polygon,
+            } = JSON.parse(itemstr);
+            str += `${frame}%{left:${left}px;top:${top}px;width:${width}px;height:${height}px;clip-path: polygon(${polygon[0]}% ${polygon[1]}%, ${polygon[2]}% ${polygon[3]}%, ${polygon[4]}% ${polygon[5]}%);}`;
+          }
+          return `@keyframes ${item.cssname}{${str}}`;
+        },
+        // 改变当前div的静态样式
+        setDomConfig(dom, config, withAnimation = false) {
+          const item = this.getDomItem(dom);
+          if (item) {
+            for (let key in config) {
+              // to delete
+              if (!(key in item)) {
+                alert("not in item");
+              }
+              item[key] = config[key];
+            }
+          }
+          
+          alterCssByClassName(
+            paintingGetter().name,
+            item.cssname,
+            mkCssClassStyle(item.cssname, item, withAnimation)
+          );
+        },
+        // 新增或改变其 animation
+        setDomAnimation(dom, removeAnimate = false){
+          if(removeAnimate){
+            // 删除动画
+            console.error("del dom anition not finished yet！");
+          }else{
+            const item = this.getDomItem(dom);
+            // 修改 css
+            alterCssByClassName(paintingGetter().name,item.cssname,mkCssClassStyle(item.cssname,item,true)); 
+            // 插入 keyframe
+            alterCssByKeyFrameName(paintingGetter().name,item.cssname,this.getDomConfigKeyFrames(item,true));
+          }
+        },
+        // 新增帧
+        addDomFrameConfig(dom) {
+          const item = this.getDomItem(dom);
+          // const newcssname = paintingGetter().name+Math.random().toString().slice(-6);
+          // prettier-ignore
+          item.animations.push(this.getDomConfigString(item,100));
+        },
+        // 变更帧,保存
+        alterDomFrameConfig(dom, index, frame) {
+          const item = this.getDomItem(dom);
+          const originConfig = JSON.parse(item.animations[index]);
+          // const cssname = originConfig.cssname;
+          if (item) {
+            item.animations[index] = this.getDomConfigString(
+              item,
+              // cssname,
+              frame
+            );
+          }
+        },
+        // 修改某帧所在位置
+        changeFramePercent(dom, index, val) {
+          const item = this.getDomItem(dom);
+          // const oldconfig = JSON.parse(item.animations[index]);
+          val = +val || 0;
+          if (val > 100) {
+            val = 100;
+          }
+          if (item) {
+            item.animations[index] = this.getDomConfigString(
+              item,
+              // oldconfig.cssname,
+              val
+            );
+          }
+        },
+        // 删除帧
+        delDomFrameConfig(dom, index) {
+          this.arr.splice(index, 1);
+        },
+        // 显示当前帧,同时需要覆盖当前的形状
+        showDomFrameConfig(dom, index) {
+
+          // 当前dom
+          const item = this.getDomItem(dom);
+          // dom的某帧配置
+          const frameItem = JSON.parse(item.animations[index]);
+
+          if (!frameItem) {
+            console.error("can't find frame");
+            return;
+          }
+          console.log("show frame",frameItem);
+          
+          this.setDomConfig(dom, frameItem);
+          //   alterCssByClassName(
+          //     paintingGetter().name,
+          //     item.cssname,
+          //     mkCssClassStyle(item.cssname, frameItem)
+          //   );
+        },
+        del(dom) {
+          const target = this.getDomItem(dom);
+          if (target) {
+            this.arr.splice(this.arr.indexOf(target), 1);
+            drawboardGetter().removeChild(dom);
+          }
+        },
+        // 传 index 表示是 animations 里面的
+        getDomItem(dom) {
+          for (let item of this.arr) {
+            if (dom === item.dom) {
+              return item;
+            }
+          }
+          return null;
+        },
+        add(ele) {
+          this.arr.push(ele);
+        },
+      });
+
+      const mkPointArrMaker = (cls) => {
+        const oriAdd = cls.add;
+        const oriClear = cls.clear;
+        // 点计数器
+        cls.i = 0;
+        cls.clear = function () {
+          oriClear.call(cls);
+          canvasMg.clear();
+          canvasMg.lineArr4 = [];
+          this.i = 0;
+        };
+        cls.add = function (ele) {
+          oriAdd.call(cls, ele);
+          // canvas三个点集齐
+          if (this.i++ === 5) {
+            const arr6 = this.close();
+            const config = mkDivConfig(arr6);
+            const dom = appendDiv(config.domStr);
+            // 存储dom
+            divManagerGetter().add(mkDivItem(dom, config));
+            if (canvasMg.reach3PointCallback) {
+              canvasMg.reach3PointCallback();
+            }
+            this.clear();
+          }
+        };
+        return cls;
+      };
+
+      //   // 一个图案的点管理器,绑定数据和dom元素
+      //   let pointArrMgGetter = () => null;
+
+      //   // 获取divmangeer
+      //   let divManagerGetter = () => null;
+
+      //   // 获取pic
+      //   let paintingGetter = () => null;
+
+      // 图案管理器
+      const picA = {
+        name: "pic0",
+        divManager: divManagerFac(),
+        pointArrManager: null,
+        init() {
+          if (!this.pointArrManager) {
+            this.pointArrManager = mkPointArrMaker(
+              basicArrMaker(),
+              this.divManager
+            );
+          }
+          pointArrMgGetter = () => this.pointArrManager;
+          divManagerGetter = () => this.divManager;
+          paintingGetter = () => this;
+        },
+      };
+
+      picA.init();
+
+      // 使容器内的三角形div.tirDiv可以被鼠标拖动;可以双击其进入编辑器；进入编辑器后可以单击编辑三角形的位置信息；
+      const addWrapEvents = (div) => {
+        let indrag = false;
+        let startX = 0;
+        let startY = 0;
+        let startLeft = 0;
+        let startTop = 0;
+
+        // 状态记录
+        // 划线中
+        let stateDrawLine = false;
+        // 移动中
+        let stateMoveTri = false;
+        // 编辑位置信息中
+        let editDrag = false;
+        let stateEditTri = false;
+        let startEditX = 0;
+        let startEditY = 0;
+        let startEditLeft = 0;
+        let startEditTop = 0;
+        let editMoveTriDiv = null;
+        let editRecordLeft = 0;
+        let editRecordTop = 0;
+
+        let editRecordConfig = null;
+        let editPosArr = null;
+        let editTargetIndex = -1;
+
+        // 移动状态的参数
+        let moveTriDiv = null;
+        let recordLeft = 0;
+        let recordTop = 0;
+
+        let dragmove = false;
+
+        // 双击判定延迟
+        let dbClickDelay = 200;
+        let firstClick = undefined;
+        let clock = null;
+
+        // 点击结束是否触发划线开始记录点
+        let afterClickTriggleDrawLine = true;
+
+        div.onmousedown = function (e) {
+          const target = e.target;
+
+          if (!target.classList.contains("triDiv") || stateMoveTri) {
+            return;
+          }
+
+          // 进入编辑三角状态
+          if (stateEditTri) {
+            editDrag = true;
+            startEditX = e.pageX;
+            startEditY = e.pageY;
+            // startEditLeft = parseInt(window.getComputedStyle(target).left);
+            // startEditTop = parseInt(window.getComputedStyle(target).top);
+            if (!editMoveTriDiv) {
+              editMoveTriDiv = target;
+            }
+            // 寻找最近点 返回 0，1，2，是其中的哪个
+            const divManager = divManagerGetter();
+            editRecordConfig = divManager.getDomItem(target);
+
+            const left = editRecordConfig.left;
+            const top = editRecordConfig.top;
+            const width = editRecordConfig.width;
+            const height = editRecordConfig.height;
+
+            editPosArr = editRecordConfig.pos;
+
+            let min = 0;
+            let newmin = 0;
+            if (editRecordConfig) {
+              for (let i = 0; i < 3; i++) {
+                newmin =
+                  Math.abs(startEditX - editPosArr[2 * i]) +
+                  Math.abs(startEditY - editPosArr[2 * i + 1]);
+                if (!min) {
+                  min = newmin;
+                  editTargetIndex = i;
+                }
+                if (newmin < min) {
+                  min = newmin;
+                  editTargetIndex = i;
+                }
+              }
+            }
+            console.log(editTargetIndex);
+
+            //   // 计算
+            //   editRecordConfig = mkDivConfig()
+
+            return;
+          }
+
+          if (firstClick === true) {
+            // 双击
+            clearTimeout(clock);
+
+            indrag = false;
+            startX = 0;
+            startY = 0;
+            startLeft = 0;
+            startTop = 0;
+
+            // 清空三角形点数组
+            pointArrMgGetter().clear();
+            stateDrawLine = false;
+            afterClickTriggleDrawLine = false;
+
+            firstClick = undefined;
+
+            // 显示编辑器
+            toolMg.showTriPanelTool(target);
+
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            return;
+          }
+
+          if (firstClick === undefined) {
+            firstClick = true;
+          }
+
+          clock = setTimeout(() => {
+            firstClick = undefined;
+            clearTimeout(clock);
+          }, dbClickDelay);
+
+          // 单击进入移动三角形状态
+          indrag = true;
+          startX = e.pageX;
+          startY = e.pageY;
+          startLeft = parseInt(window.getComputedStyle(target).left);
+          startTop = parseInt(window.getComputedStyle(target).top);
+
+          if (!moveTriDiv) {
+            moveTriDiv = e.target;
+          }
+          e.preventDefault();
+          e.stopPropagation();
+        };
+
+        // 移动三角形或编辑三角位置(松开前仅移动一个)
+        div.onmousemove = function (e) {
+          if (!e.target.classList.contains("triDiv")) {
+            return;
+          }
+          // 编辑三角todo
+          if (stateEditTri && editDrag) {
+            editRecordLeft = e.pageX - startEditX;
+            editRecordTop = e.pageY - startEditY;
+
+            const stylestr = calcDivPosStyle(
+              editPosArr.map((ele, i) => {
+                if (i === 2 * editTargetIndex) {
+                  return ele + editRecordLeft;
+                }
+                if (i === 2 * editTargetIndex + 1) {
+                  return ele + editRecordTop;
+                }
+                return ele;
+              })
+            );
+            editMoveTriDiv.style = stylestr;
+
+            return;
+          }
+          if (!moveTriDiv || stateDrawLine) {
+            return;
+          }
+
+          if (indrag && moveTriDiv) {
+            stateMoveTri = true;
+            dragmove = true;
+            // 记录移动后的位置信息
+            recordLeft = e.pageX - startX + startLeft;
+            recordTop = e.pageY - startY + startTop;
+
+            moveTriDiv.style.left = recordLeft + "px";
+            moveTriDiv.style.top = recordTop + "px";
+          }
+          e.stopPropagation();
+          e.preventDefault();
+        };
+
+        div.addEventListener("mouseup", function (e) {
+          const target = e.target;
+          if (!target.classList.contains("triDiv")) {
+            return;
+          }
+
+          // 编辑三角形位置
+          if (stateEditTri) {
+            if (editDrag) {
+              editPosArr[2 * editTargetIndex] += editRecordLeft;
+              editPosArr[2 * editTargetIndex + 1] += editRecordTop;
+              const { left, top, width, height, polygon, pos } = mkDivConfig(
+                editPosArr
+              );
+
+              divManagerGetter().setDomConfig(target, {
+                left,
+                top,
+                width,
+                height,
+                polygon,
+                pos,
+              });
+
+              target.style = "";
+
+              startEditX = 0;
+              startEditY = 0;
+              startEditLeft = 0;
+              startEditTop = 0;
+              editMoveTriDiv = null;
+              editRecordLeft = 0;
+              editRecordTop = 0;
+
+              editRecordConfig = null;
+              editPosArr = null;
+              editTargetIndex = -1;
+              editDrag = false;
+            }
+            return;
+          }
+          stateMoveTri = false;
+          moveTriDiv = null;
+
+          // 拖动三角形状态
+          if (dragmove === true) {
+            // 拖动结束不触发画线事件
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            dragmove = false;
+            console.log("record left top");
+
+            // 拖动中使用 style，结束后使用 cssstyle记录状态
+            const divMg = divManagerGetter();
+            let offsetX = recordLeft - startLeft;
+            let offsetY = recordTop - startTop;
+            const item = divMg.getDomItem(target);
+
+            // 更新pos
+            item.pos = item.pos.map((ele, i) => {
+              if (i % 2 === 0) {
+                return ele + offsetX;
+              }
+              return ele + offsetY;
+            });
+
+            divMg.setDomConfig(target, {
+              left: recordLeft,
+              top: recordTop,
+            });
+            target.style = "";
+          }
+
+          indrag = false;
+          startX = 0;
+          startY = 0;
+          startLeft = 0;
+          startTop = 0;
+          e.stopPropagation();
+        });
+
+        // 画线事件
+        div.addEventListener("mouseup", function (e) {
+          // 编辑三角和移动三角时不划线
+          if (stateEditTri || stateMoveTri) {
+            return;
+          }
+          if (!afterClickTriggleDrawLine) {
+            afterClickTriggleDrawLine = true;
+            return;
+          }
+          stateDrawLine = true;
+          canvasMg.lineArr4.push(e.pageX);
+          canvasMg.lineArr4.push(e.pageY);
+          if (!canvasMg.reach3PointCallback) {
+            canvasMg.reach3PointCallback = () => {
+              stateDrawLine = false;
+            };
+          }
+          pointArrMgGetter().add(e.pageX);
+          pointArrMgGetter().add(e.pageY);
+          canvasMg.drawnewline(e.pageX, e.pageY);
+        });
+
+        const tabStateEditTri = (ifOpen) => {
+          stateEditTri = ifOpen;
+          if (ifOpen) {
+            stateMoveTri = false;
+            stateDrawLine = false;
+          }
+        };
+        return { tabStateEditTri };
+      };
+
+      // 使一个 div 可以被鼠标拖动
+      const mkDragable = (div, propTopHandler) => {
+        let indrag = false;
+        let startX = 0;
+        let startY = 0;
+        let startLeft = 0;
+        let startTop = 0;
+        let target = null;
+        // let not
+
+        div.onmousedown = function (e) {
+          if (!target) {
+            target = e.currentTarget;
+          }
+          // 单击
+          indrag = true;
+          startX = e.pageX;
+          startY = e.pageY;
+          startLeft = parseInt(window.getComputedStyle(target).left);
+          startTop = parseInt(window.getComputedStyle(target).top);
+          //   e.preventDefault();
+          //   e.stopPropagation();
+        };
+
+        // 移动
+        div.onmousemove = function (e) {
+          if (indrag) {
+            stateMoveTri = true;
+            dragmove = true;
+            target.style.left = e.pageX - startX + startLeft + "px";
+            const top = e.pageY - startY + startTop;
+            if (propTopHandler) {
+              propTopHandler(top);
+            }
+            target.style.top = top + "px";
+          }
+          //   e.stopPropagation();
+          //   e.preventDefault();
+        };
+
+        div.addEventListener("mouseup", function (e) {
+          indrag = false;
+          target = null;
+          startX = 0;
+          startY = 0;
+          startLeft = 0;
+          startTop = 0;
+          //   e.stopPropagation();
+        });
+      };
+
+      // 使子元素可以被拖动同时绑定划线事件
+      const { tabStateEditTri } = addWrapEvents(drawboardGetter());
+
+      // 使得可以被拖动
+      mkDragable($(".triEditor").ele, (top) => {
+        toolMg.triPanelTop = top;
+      });
+      $(".triEditor").ele.addEventListener("mouseup", function (e) {
+        if (e.target.classList.contains("close")) {
+          toolMg.hideTriPanelTool();
+          return;
+        }
+        if (e.target.classList.contains("delBtn")) {
+          toolMg.delTri();
+          return;
+        }
+        if (e.target.classList.contains("editTriAngle")) {
+          const dom = e.target;
+          if (+dom.getAttribute("data-state") === 0) {
+            toolMg.openStateEditTri();
+            dom.setAttribute("data-state", "1");
+            dom.innerHTML = "关闭形状编辑";
+          } else {
+            toolMg.closeStateEditTri();
+            dom.setAttribute("data-state", "0");
+            dom.innerHTML = "开启形状编辑";
+          }
+          return;
+        }
+        // 保存(更改）配置
+        if (e.target.classList.contains("saveFrame")) {
+          const target = e.target.parentNode.parentNode;
+          const timeslices = document.getElementsByClassName("timeslice");
+          const frame =
+            e.target.parentNode.previousElementSibling.children[0].value;
+          for (let i in timeslices) {
+            if (timeslices[i] === target) {
+              toolMg.alterFrameConfig(i, frame);
+              break;
+            }
+          }
+          return;
+        }
+        // 新增配置
+        if (e.target.classList.contains("addFrame")) {
+          toolMg.addFrameConfig();
+          return;
+        }
+        // 显示当前配置
+        if (e.target.classList.contains("showFrame")) {
+          const target = e.target.parentNode.parentNode;
+          const timeslices = document.getElementsByClassName("timeslice");
+
+          for (let i in timeslices) {
+            if (timeslices[i] === target) {
+              toolMg.showFrameConfig(i);
+              break;
+            }
+          }
+          return;
+        }
+        // 预览当前配置
+        if (e.target.classList.contains("previewFrame")) {
+
+          toolMg.previewFrameConfig();
+          return;
+        }
+      });
+
+      // 三角图块管理器
+      const toolMg = {
+        curTriDom: null,
+        triPanelHide: true,
+        triPanelTop: 0,
+        triBgColorAlpha: 1,
+        triBgColor: "255,255,255",
+        // 用于预览动画的keyframe样式
+        preiviewKeyframe:"",
+        previewStyleTag:null,
+
+        getTriFrameDomStr(frame) {
+          return `<div class="timeslice">
+            <div class="item">
+              <input type="text" value="${frame}" onblur="toolMg.changeFramePercent(event)" style="width: 100%" />
+            </div>
+            <div class="item">
+              <button class="saveFrame">保存</button>
+            </div>
+            <div class="item">
+              <button class="showFrame">复原</button>
+            </div>
+            <div class="item">
+              <button class="showFrame">显示</button>
+            </div>
+          </div>`;
+        },
+        showTriPanelTool(triDom) {
+          this.triBgColorAlpha = 1;
+
+          // 移除之前选中的
+          if (this.curTriDom) {
+            this.curTriDom.classList.remove("shine");
+            this.curTriDom = null;
+          }
+
+          this.curTriDom = triDom;
+
+          // 显示可编辑的帧
+          this.showFramsConfig();
+          // 自动进入编辑三角形的状态
+          //   this.openStateEditTri();
+
+          triDom.classList.add("shine");
+          if (this.triPanelHide) {
+            $(".triEditor").top(this.triPanelTop);
+            this.triPanelHide = false;
+          }
+        },
+        showFramsConfig() {
+          const divManager = divManagerGetter();
+          const config = divManager.getDomItem(this.curTriDom);
+          const items = config.animations;
+
+          let str = "";
+
+          for (let itemstr of items) {
+            const item = JSON.parse(itemstr);
+            str += this.getTriFrameDomStr(item.frame);
+          }
+          document.getElementsByClassName("animateBody")[0].innerHTML = str;
+          // 总配置部分
+          document.getElementById("duration").value = config.duration;
+          document.getElementById("animation").value = config.animation;
+        },
+        hideTriPanelTool() {
+          this.triPanelHide = true;
+          // 退出编辑三角位置的状态
+          //   this.closeStateEditTri();
+          if (this.curTriDom) {
+            this.curTriDom.classList.remove("shine");
+          }
+          $(".triEditor").top(9999);
+        },
+
+        // 修改可见配置部分 ----------------------------------------------------------------------
+        changeTriColorAlpha(e) {
+          const divManager = divManagerGetter();
+          this.triBgColorAlpha = +e.target.value || 1;
+          e.target.value = this.triBgColorAlpha;
+          divManager.setDomConfig(this.curTriDom, {
+            alpha: this.triBgColorAlpha,
+          });
+        },
+        changeTriColor(e) {
+          const divManager = divManagerGetter();
+          this.triBgColor = strToRGB(e.target.value).join(",");
+          divManager.setDomConfig(this.curTriDom, {
+            color: this.triBgColor,
+          });
+        },
+        changeDuration(e) {
+          const divManager = divManagerGetter();
+          divManager.setDomConfig(this.curTriDom, {
+            duration: e.target.value,
+          });
+        },
+        changeanimation(e) {
+          const divManager = divManagerGetter();
+          divManager.setDomConfig(this.curTriDom, {
+            animation: e.target.value
+          },true);
+        },
+        changeFramePercent(e) {
+          const target = e.target.parentNode.parentNode;
+          const timeslices = document.getElementsByClassName("timeslice");
+          let index = -1;
+          for (let i in timeslices) {
+            if (timeslices[i] === target) {
+              index = i;
+              break;
+            }
+          }
+          divManagerGetter().changeFramePercent(
+            this.curTriDom,
+            index,
+            e.target.value
+          );
+        },
+        // 修改可见配置部分 ------------------------------------------------------------------------
+
+        openStateEditTri() {
+          tabStateEditTri(true);
+          this.curTriDom.classList.add("stateEdit");
+        },
+        closeStateEditTri() {
+          tabStateEditTri(false);
+          this.curTriDom.classList.remove("stateEdit");
+        },
+        delTri() {
+          const divManager = divManagerGetter();
+          divManager.del(this.curTriDom);
+        },
+        // 更新当前帧
+        alterFrameConfig(index, frame) {
+          divManagerGetter().alterDomFrameConfig(this.curTriDom, index, frame);
+        },
+        // 新增帧
+        addFrameConfig() {
+          divManagerGetter().addDomFrameConfig(this.curTriDom);
+          this.showFramsConfig();
+        },
+        // 显示当前帧
+        showFrameConfig(index) {
+          divManagerGetter().showDomFrameConfig(this.curTriDom, index);
+        },
+        // 预览当前动画
+        previewFrameConfig(){
+          divManagerGetter().setDomAnimation(this.curTriDom);
+        }
+      };
+    </script>
+    <script></script>
+    <!-- <script src="./index.js"></script> -->
+  </body>
+</html>

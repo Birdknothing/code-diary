@@ -1,12 +1,20 @@
-console.log('1.2' | 0);
-
-function strlen(ptr) {
-    ptr = ptr|0;
-    var curr = 0;
-    curr = ptr;
-    while (MEM8[curr]|0 != 0) {
-      curr = (curr + 1)|0;
+const a = {
+    t:1,
+    test(x,y){
+        console.log(this.t,x,y);
     }
-    return (curr - ptr)|0;
-  }
-console.log(strlen('hahaha'));
+}
+const b = a.test;
+a.test = function(x,y){
+    b.call(this,x,y);
+}
+a.test(2,3);
+
+const tmp = XMLHttpRequest.prototype.setRequestHeader;
+XMLHttpRequest.prototype.setRequestHeader = function(key,...args){if(key!=="content-length"){return tmp.call(this,key,...args);}return this;};
+
+    
+// if (oSession.HostnameIs("ndea.99.com")){
+//     oSession.oRequest.headers.Remove("Content-Length")
+//     oSession.oRequest.headers.Add("Content-Length",19);
+//  }
